@@ -1,15 +1,23 @@
 #!/bin/bash
 
+src=$1
+dst=$2
+
+if ! echo $src | grep -q [a-zA-Z0-9]; then echo "no src specified"; exit 1; fi
+if ! echo $dst | grep -q [a-zA-Z0-9]; then echo "no dst specified"; exit 1; fi
+
+exit 0
+
 mkdir -p src dst work
 
 #### Find differences ####
 echo "Files that will be deleted:"
-rsync -a --checksum --verbose --delete --dry-run src/ dst/ | grep "^deleting " | sed -e "s|^deleting ||g" | grep -ve '/$' | tee /tmp/delete
+rsync -a --checksum --verbose --delete --dry-run ${1}/ ${2}/ | grep "^deleting " | sed -e "s|^deleting ||g" | grep -ve '/$' | tee /tmp/delete
 
 echo
 
 echo "Files that will be overwritten:"
-rsync -a --checksum --verbose --dry-run src/ dst/ | grep -ve '^$' -ve '^sending incremental' -ve '^./' -ve '^sent .* bytes' -ve '^total size is ' -ve '/$' | tee /tmp/overwrite
+rsync -a --checksum --verbose --dry-run ${1}/ ${2}/ | grep -ve '^$' -ve '^sending incremental' -ve '^./' -ve '^sent .* bytes' -ve '^total size is ' -ve '/$' | tee /tmp/overwrite
 
 #### Save differences ####
 id=`uuidgen`
@@ -32,4 +40,5 @@ done
 echo
 echo "Press enter to sync"
 read
-rsync -a --verbose --human-readable --delete src/ dst/
+rsync -a --verbose --human-readable --delete ${1}/ ${2}/
+

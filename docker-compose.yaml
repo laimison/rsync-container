@@ -1,0 +1,44 @@
+version: '3.5'
+
+# docker-compose build && docker-compose down && docker-compose up -d && docker-compose ps
+
+services:
+  rsync-1:
+    container_name: rsync-1
+    hostname: rsync-1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # environment:
+    #   - rsync_src="/rsync/data"
+    #   - rsync_dst="rsync-2:/data"
+    #   - work="/rsync/work"
+    volumes:
+      - "./sync.sh:/rsync/sync.sh"
+      - "./data-1:/rsync/data"
+      - "./work-1:/rsync/work"
+    working_dir: /rsync
+    user: root
+    command: >
+      bash -c "true
+      ; tail -F /dev/null"
+
+  rsync-2:
+    container_name: rsync-2
+    hostname: rsync-2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - rsync_src="/rsync/data"
+      - rsync_dst="rsync-1:/data"
+      - work="/rsync/work"
+    volumes:
+      - "./sync.sh:/rsync/sync.sh"
+      - "./data-2:/rsync/data"
+      - "./work-2:/rsync/work"
+    working_dir: /rsync
+    user: root
+    command: >
+      bash -c "true
+      ; tail -F /dev/null"
